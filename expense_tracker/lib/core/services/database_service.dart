@@ -1,5 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 import '../constants/hive_boxes.dart';
 import '../models/transaction.dart';
 import '../models/user.dart';
