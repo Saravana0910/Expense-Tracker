@@ -15,7 +15,6 @@ class UserService {
     required String name,
     String? avatarPath,
   }) async {
-    final existingUser = await getCurrentUser();
     final user = User(
       id: AppConstants.defaultUserId,
       name: name,

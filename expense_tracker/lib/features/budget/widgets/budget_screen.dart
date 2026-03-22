@@ -262,14 +262,14 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
               if (amount != null && amount > 0) {
                 try {
                   await ref.read(budgetProvider.notifier).setMonthlyBudget(amount, _selectedMonth);
-                  if (mounted) {
+                  if (context.mounted) {
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Budget updated successfully')),
                     );
                   }
                 } catch (e) {
-                  if (mounted) {
+                  if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Error: $e')),
                     );

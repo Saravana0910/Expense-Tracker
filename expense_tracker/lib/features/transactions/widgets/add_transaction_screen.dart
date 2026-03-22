@@ -70,7 +70,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
               // Category
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 decoration: const InputDecoration(
                   labelText: 'Category',
                   border: OutlineInputBorder(),
@@ -110,7 +110,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
               // Payment Method
               DropdownButtonFormField<String>(
-                value: _selectedPaymentMethod,
+                initialValue: _selectedPaymentMethod,
                 decoration: const InputDecoration(
                   labelText: 'Payment Method',
                   border: OutlineInputBorder(),

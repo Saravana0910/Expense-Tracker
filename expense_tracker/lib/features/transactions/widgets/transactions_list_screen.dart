@@ -243,7 +243,7 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
             children: [
               // Category
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 decoration: const InputDecoration(labelText: 'Category'),
                 items: ['All', ...AppConstants.categories].map((category) {
                   return DropdownMenuItem(
