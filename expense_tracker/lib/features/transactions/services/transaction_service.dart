@@ -59,14 +59,14 @@ class TransactionService {
 
   Future<double> getTotalSpent() async {
     final transactions = await getAllTransactions();
-    return transactions.fold(0.0, (sum, t) => sum + t.amount);
+    return transactions.fold<double>(0.0, (double sum, Transaction t) => sum + t.amount);
   }
 
   Future<double> getMonthlySpent(DateTime month) async {
     final start = DateTime(month.year, month.month, 1);
     final end = DateTime(month.year, month.month + 1, 0);
     final transactions = await getTransactionsByDateRange(start, end);
-    return transactions.fold(0.0, (sum, t) => sum + t.amount);
+    return transactions.fold<double>(0.0, (double sum, Transaction t) => sum + t.amount);
   }
 
   Future<Map<String, double>> getCategorySpending() async {
