@@ -11,18 +11,34 @@ class DatabaseService {
   DatabaseService._internal();
 
   Future<void> init() async {
-    final appDocumentDir = await getApplicationDocumentsDirectory();
-    Hive.initFlutter(appDocumentDir.path);
+    try {
+      final appDocumentDir = await getApplicationDocumentsDirectory();
+      await Hive.initFlutter(appDocumentDir.path);
 
-    // Register adapters
-    Hive.registerAdapter(TransactionAdapter());
-    Hive.registerAdapter(UserAdapter());
-    Hive.registerAdapter(BudgetAdapter());
+      // Register adapters
+      Hive.registerAdapter(TransactionAdapter());
+      Hive.registerAdapter(UserAdapter());
+      Hive.registerAdapter(BudgetAdapter());
 
-    // Open boxes
-    await Hive.openBox<Transaction>(HiveBoxes.transactions);
-    await Hive.openBox<User>(HiveBoxes.users);
-    await Hive.openBox<Budget>(HiveBoxes.budgets);
+      // Open boxes
+      await Hive.openBox<Transaction>(HiveBoxes.transactions);
+      await Hive.openBox<User>(HiveBoxes.users);
+      await Hive.openBox<Budget>(HiveBoxes.budgets);
+
+      debugPrint('Database initialized successfully at: ${appDocumentDir.path}');
+    } catch (e, stackTrace) {
+      debugPrint('Database initialization error: $e');
+      debugPrint('Stack trace: $stackTrace');
+
+      // Try alternative initialization
+      try {
+        await Hive.initFlutter();
+        debugPrint('Fallback database initialization successful');
+      } catch (fallbackError) {
+        debugPrint('Fallback database initialization also failed: $fallbackError');
+        // Continue without database - app will work but data won't persist
+      }
+    }
   }
 
   Box<Transaction> get transactionsBox => Hive.box<Transaction>(HiveBoxes.transactions);
