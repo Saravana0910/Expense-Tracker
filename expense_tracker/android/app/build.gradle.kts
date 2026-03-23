@@ -42,13 +42,17 @@ android {
 }
 dependencies {
     // Import the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
+    implementation(platform("com.google.firebase:firebase-bom:32.7.4"))
 
-    // Firebase Authentication
-    implementation("com.google.firebase:firebase-auth-ktx")
+    // Firebase Authentication (without version when using BoM)
+    implementation("com.google.firebase:firebase-auth")
 
-    // Cloud Firestore
-    implementation("com.google.firebase:firebase-firestore-ktx")
+    // Cloud Firestore (without version when using BoM)
+    implementation("com.google.firebase:firebase-firestore")
+
+    // Firebase Analytics (without version when using BoM)
+    implementation("com.google.firebase:firebase-analytics")
+}
 
     // Firebase Analytics (optional but recommended)
     implementation("com.google.firebase:firebase-analytics-ktx")
