@@ -31,14 +31,14 @@ class TransactionsNotifier extends StateNotifier<AsyncValue<List<Transaction>>> 
     required String paymentMethod,
   }) async {
     try {
-      await _service.addTransaction(
+      final newTransaction = await _service.addTransaction(
         amount: amount,
         category: category,
         date: date,
         notes: notes,
         paymentMethod: paymentMethod,
       );
-      await loadTransactions();
+      state = state.whenData((transactions) => [...transactions, newTransaction]);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -47,7 +47,8 @@ class TransactionsNotifier extends StateNotifier<AsyncValue<List<Transaction>>> 
   Future<void> updateTransaction(Transaction transaction) async {
     try {
       await _service.updateTransaction(transaction);
-      await loadTransactions();
+      state = state.whenData((transactions) =>
+        transactions.map((t) => t.id == transaction.id ? transaction : t).toList());
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -56,7 +57,8 @@ class TransactionsNotifier extends StateNotifier<AsyncValue<List<Transaction>>> 
   Future<void> deleteTransaction(String id) async {
     try {
       await _service.deleteTransaction(id);
-      await loadTransactions();
+      state = state.whenData((transactions) =>
+        transactions.where((t) => t.id != id).toList());
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -85,8 +87,8 @@ class UserNotifier extends StateNotifier<AsyncValue<User?>> {
     String? avatarPath,
   }) async {
     try {
-      await _service.createOrUpdateUser(name: name, avatarPath: avatarPath);
-      await loadUser();
+      final updatedUser = await _service.createOrUpdateUser(name: name, avatarPath: avatarPath);
+      state = AsyncValue.data(updatedUser);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -112,8 +114,8 @@ class BudgetNotifier extends StateNotifier<AsyncValue<Budget?>> {
 
   Future<void> setMonthlyBudget(double amount, DateTime month) async {
     try {
-      await _service.setMonthlyBudget(amount, month);
-      await loadCurrentBudget(month);
+      final updatedBudget = await _service.setMonthlyBudget(amount, month);
+      state = AsyncValue.data(updatedBudget);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }

@@ -26,7 +26,7 @@ class DashboardScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.person),
-            onPressed: () => context.go('/profile'),
+            onPressed: () => context.push('/profile'),
           ),
         ],
       ),
@@ -157,7 +157,7 @@ class DashboardScreen extends ConsumerWidget {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               TextButton(
-                onPressed: () => context.go('/transactions'),
+                onPressed: () => context.push('/transactions'),
                 child: const Text('View All'),
               ),
             ],

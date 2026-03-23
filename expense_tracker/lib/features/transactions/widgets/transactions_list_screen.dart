@@ -18,10 +18,19 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
   DateTime? _startDate;
   DateTime? _endDate;
   String _searchQuery = '';
+  List<Transaction> _filteredTransactions = [];
 
   @override
   Widget build(BuildContext context) {
     final transactionsAsync = ref.watch(transactionsProvider);
+
+    // Update filtered transactions when the transaction list changes
+    ref.listen(transactionsProvider, (previous, next) {
+      next.whenData((transactions) {
+        _updateFilteredTransactions(transactions);
+        setState(() {});
+      });
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -47,7 +56,66 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
               onChanged: (value) {
                 setState(() {
                   _searchQuery = value.toLowerCase();
+                  _updateFilteredTransactions(transactionsAsync.value ?? []);
                 });
+              },
+            ),
+          ),
+
+          // Filter chips
+          if (_selectedCategory != 'All' || _startDate != null || _endDate != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Wrap(
+                spacing: 8,
+                children: [
+                  if (_selectedCategory != 'All')
+                    Chip(
+                      label: Text(_selectedCategory),
+                      onDeleted: () {
+                        setState(() {
+                          _selectedCategory = 'All';
+                          _updateFilteredTransactions(transactionsAsync.value ?? []);
+                        });
+                      },
+                    ),
+                  if (_startDate != null)
+                    Chip(
+                      label: Text('From ${DateFormat.yMMMd().format(_startDate!)}'),
+                      onDeleted: () {
+                        setState(() {
+                          _startDate = null;
+                          _updateFilteredTransactions(transactionsAsync.value ?? []);
+                        });
+                      },
+                    ),
+                  if (_endDate != null)
+                    Chip(
+                      label: Text('To ${DateFormat.yMMMd().format(_endDate!)}'),
+                      onDeleted: () {
+                        setState(() {
+                          _endDate = null;
+                          _updateFilteredTransactions(transactionsAsync.value ?? []);
+                        });
+                      },
+                    ),
+                ],
+              ),
+            ),
+
+          // Transactions list
+          Expanded(
+            child: transactionsAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text('Error: $error')),
+              data: (transactions) {
+                if (_filteredTransactions.isEmpty && transactions.isNotEmpty) {
+                  _updateFilteredTransactions(transactions);
+                }
+                return _buildTransactionsList(_filteredTransactions);
+              },
+            ),
+          ),
               },
             ),
           ),
@@ -95,7 +163,12 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
             child: transactionsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => Center(child: Text('Error: $error')),
-              data: (transactions) => _buildTransactionsList(_filterTransactions(transactions)),
+              data: (transactions) {
+                if (_filteredTransactions.isEmpty && transactions.isNotEmpty) {
+                  _updateFilteredTransactions(transactions);
+                }
+                return _buildTransactionsList(_filteredTransactions);
+              },
             ),
           ),
         ],
@@ -156,8 +229,8 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
     );
   }
 
-  List<Transaction> _filterTransactions(List<Transaction> transactions) {
-    return transactions.where((transaction) {
+  void _updateFilteredTransactions(List<Transaction> transactions) {
+    _filteredTransactions = transactions.where((transaction) {
       // Category filter
       if (_selectedCategory != 'All' && transaction.category != _selectedCategory) {
         return false;
@@ -225,6 +298,9 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
           },
           onDismissed: (direction) {
             ref.read(transactionsProvider.notifier).deleteTransaction(transaction.id);
+            setState(() {
+              _filteredTransactions.removeWhere((t) => t.id == transaction.id);
+            });
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Transaction deleted')),
             );
@@ -367,16 +443,18 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
                   _selectedCategory = 'All';
                   _startDate = null;
                   _endDate = null;
+                  _updateFilteredTransactions(ref.read(transactionsProvider).value ?? []);
                 });
                 Navigator.of(context).pop();
-                this.setState(() {});
               },
               child: const Text('Clear'),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                this.setState(() {});
+                setState(() {
+                  _updateFilteredTransactions(ref.read(transactionsProvider).value ?? []);
+                });
               },
               child: const Text('Apply'),
             ),
