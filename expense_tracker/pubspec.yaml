@@ -38,7 +38,7 @@ dependencies:
   # Firebase
   firebase_core: ^2.22.0
   firebase_auth: ^4.8.0
-  cloud_firestore: ^5.13.0
+  cloud_firestore: ^4.17.5
 
   # Connectivity for offline detection
   connectivity_plus: ^5.0.0
