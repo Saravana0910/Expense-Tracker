@@ -13,7 +13,13 @@ class BudgetScreen extends ConsumerStatefulWidget {
 
 class _BudgetScreenState extends ConsumerState<BudgetScreen> {
   final _budgetController = TextEditingController();
-  DateTime _selectedMonth = DateTime.now();
+  late DateTime _selectedMonth;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedMonth = DateTime.now();
+  }
 
   @override
   void dispose() {
@@ -144,7 +150,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
   }
 
   Widget _buildBottomNav(BuildContext context) {
-    final location = GoRouter.of(context).routeInformationProvider.value.location;
+    final uri = GoRouter.of(context).routeInformationProvider.value.uri;
+    final location = uri.path;
     int currentIndex = 3;
     
     if (location.startsWith('/transactions')) {

@@ -233,7 +233,8 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildBottomNav(BuildContext context) {
-    final location = GoRouter.of(context).routeInformationProvider.value.location;
+    final uri = GoRouter.of(context).routeInformationProvider.value.uri;
+    final location = uri.path;
     int currentIndex = 0;
     
     if (location.startsWith('/transactions')) {

@@ -105,7 +105,8 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
   }
 
   Widget _buildBottomNav(BuildContext context) {
-    final location = GoRouter.of(context).routeInformationProvider.value.location;
+    final uri = GoRouter.of(context).routeInformationProvider.value.uri;
+    final location = uri.path;
     int currentIndex = 1;
     
     if (location.startsWith('/analytics')) {
@@ -153,7 +154,6 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
         ),
       ],
     );
-  }
   }
 
   List<Transaction> _filterTransactions(List<Transaction> transactions) {
