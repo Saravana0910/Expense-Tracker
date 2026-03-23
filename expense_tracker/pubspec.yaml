@@ -41,7 +41,7 @@ dependencies:
   cloud_firestore: ^5.13.0
 
   # Connectivity for offline detection
-  connectivity_plus: ^4.2.0
+  connectivity_plus: ^5.0.0
 
 dev_dependencies:
   flutter_test:
