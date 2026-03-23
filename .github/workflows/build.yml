@@ -15,12 +15,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Write google-services.json from secret
+      - name: Write Firebase config files from secrets
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
         run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "ERROR: GOOGLE_SERVICES_JSON secret is not set or empty."
+            exit 1
+          fi
+          if [ -z "$FIREBASE_OPTIONS_DART" ]; then
+            echo "ERROR: FIREBASE_OPTIONS_DART secret is not set or empty."
+            exit 1
+          fi
           mkdir -p expense_tracker/android/app
           echo "$GOOGLE_SERVICES_JSON" > expense_tracker/android/app/google-services.json
+          echo "$FIREBASE_OPTIONS_DART" > expense_tracker/lib/firebase_options.dart
 
       - name: Setup Java
         uses: actions/setup-java@v4
