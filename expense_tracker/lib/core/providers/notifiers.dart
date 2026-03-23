@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
+import '../constants/app_constants.dart';
 import '../models/transaction.dart';
 import '../models/user.dart';
 import '../models/budget.dart';
@@ -31,14 +33,24 @@ class TransactionsNotifier extends StateNotifier<AsyncValue<List<Transaction>>> 
     required String paymentMethod,
   }) async {
     try {
-      final newTransaction = await _service.addTransaction(
+      final transaction = Transaction(
+        id: const Uuid().v4(),
+        amount: amount,
+        category: category,
+        date: date,
+        notes: notes,
+        paymentMethod: paymentMethod,
+        userId: AppConstants.defaultUserId,
+      );
+      
+      await _service.addTransaction(
         amount: amount,
         category: category,
         date: date,
         notes: notes,
         paymentMethod: paymentMethod,
       );
-      state = state.whenData((transactions) => [...transactions, newTransaction]);
+      state = state.whenData((transactions) => [...transactions, transaction]);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -87,8 +99,14 @@ class UserNotifier extends StateNotifier<AsyncValue<User?>> {
     String? avatarPath,
   }) async {
     try {
-      final updatedUser = await _service.createOrUpdateUser(name: name, avatarPath: avatarPath);
-      state = AsyncValue.data(updatedUser);
+      final user = User(
+        id: AppConstants.defaultUserId,
+        name: name,
+        avatarPath: avatarPath,
+      );
+      
+      await _service.createOrUpdateUser(name: name, avatarPath: avatarPath);
+      state = AsyncValue.data(user);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -114,8 +132,16 @@ class BudgetNotifier extends StateNotifier<AsyncValue<Budget?>> {
 
   Future<void> setMonthlyBudget(double amount, DateTime month) async {
     try {
-      final updatedBudget = await _service.setMonthlyBudget(amount, month);
-      state = AsyncValue.data(updatedBudget);
+      final existing = await _service.getCurrentMonthBudget(month);
+      final budget = Budget(
+        id: existing?.id ?? const Uuid().v4(),
+        amount: amount,
+        month: DateTime(month.year, month.month, 1),
+        userId: AppConstants.defaultUserId,
+      );
+      
+      await _service.setMonthlyBudget(amount, month);
+      state = AsyncValue.data(budget);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }

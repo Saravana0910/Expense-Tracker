@@ -116,61 +116,6 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
               },
             ),
           ),
-              },
-            ),
-          ),
-
-          // Filter chips
-          if (_selectedCategory != 'All' || _startDate != null || _endDate != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Wrap(
-                spacing: 8,
-                children: [
-                  if (_selectedCategory != 'All')
-                    Chip(
-                      label: Text(_selectedCategory),
-                      onDeleted: () {
-                        setState(() {
-                          _selectedCategory = 'All';
-                        });
-                      },
-                    ),
-                  if (_startDate != null)
-                    Chip(
-                      label: Text('From ${DateFormat.yMMMd().format(_startDate!)}'),
-                      onDeleted: () {
-                        setState(() {
-                          _startDate = null;
-                        });
-                      },
-                    ),
-                  if (_endDate != null)
-                    Chip(
-                      label: Text('To ${DateFormat.yMMMd().format(_endDate!)}'),
-                      onDeleted: () {
-                        setState(() {
-                          _endDate = null;
-                        });
-                      },
-                    ),
-                ],
-              ),
-            ),
-
-          // Transactions list
-          Expanded(
-            child: transactionsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(child: Text('Error: $error')),
-              data: (transactions) {
-                if (_filteredTransactions.isEmpty && transactions.isNotEmpty) {
-                  _updateFilteredTransactions(transactions);
-                }
-                return _buildTransactionsList(_filteredTransactions);
-              },
-            ),
-          ),
         ],
       ),
       bottomNavigationBar: _buildBottomNav(context),
