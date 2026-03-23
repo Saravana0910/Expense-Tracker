@@ -1,14 +1,29 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/models/transaction.dart';
 import '../../../core/services/database_service.dart';
+import '../../../core/services/firestore_service.dart';
+import '../../../core/services/hive_service.dart';
 
 class TransactionService {
   final DatabaseService _db = DatabaseService();
+  final HiveService _hive = HiveService();
+  final FirestoreService _firestore = FirestoreService();
+  final Connectivity _connectivity = Connectivity();
+
+  String get currentUserId => FirebaseAuth.instance.currentUser?.uid ?? AppConstants.defaultUserId;
+
+  Future<bool> get isOnline async {
+    final status = await _connectivity.checkConnectivity();
+    return status != ConnectivityResult.none;
+  }
 
   Future<List<Transaction>> getAllTransactions() async {
     final box = _db.transactionsBox;
-    return box.values.where((t) => t.userId == AppConstants.defaultUserId).toList();
+    return box.values.where((t) => t.userId == currentUserId).toList();
   }
 
   Future<List<Transaction>> getTransactionsByDateRange(DateTime start, DateTime end) async {
@@ -40,21 +55,57 @@ class TransactionService {
       date: date,
       notes: notes,
       paymentMethod: paymentMethod,
-      userId: AppConstants.defaultUserId,
+      userId: currentUserId,
     );
 
     final box = _db.transactionsBox;
     await box.put(transaction.id, transaction);
+
+    if (await isOnline) {
+      await _firestore.addExpense(currentUserId, transaction);
+      await _hive.removeUnsyncedExpense(transaction.id);
+    } else {
+      await _hive.addUnsyncedExpense(transaction);
+    }
   }
 
   Future<void> updateTransaction(Transaction transaction) async {
     final box = _db.transactionsBox;
     await box.put(transaction.id, transaction);
+
+    if (await isOnline) {
+      await _firestore.addExpense(currentUserId, transaction);
+      await _hive.removeUnsyncedExpense(transaction.id);
+    } else {
+      await _hive.addUnsyncedExpense(transaction);
+    }
   }
 
   Future<void> deleteTransaction(String id) async {
     final box = _db.transactionsBox;
     await box.delete(id);
+    final expensesRef = FirebaseFirestore.instance.collection('users').doc(currentUserId).collection('expenses');
+    await expensesRef.doc(id).delete().catchError((_) {});
+  }
+
+  Future<void> syncFromCloud() async {
+    if (!await isOnline) return;
+
+    final cloudExpenses = await _firestore.getUserExpenses(currentUserId);
+    final box = _db.transactionsBox;
+    for (var expense in cloudExpenses) {
+      await box.put(expense.id, expense);
+    }
+
+    final unsynced = await _hive.getUnsyncedExpenses(currentUserId);
+    for (var expense in unsynced) {
+      try {
+        await _firestore.addExpense(currentUserId, expense);
+        await _hive.removeUnsyncedExpense(expense.id);
+      } catch (_) {
+        // keep in unsynced for retry
+      }
+    }
   }
 
   Future<double> getTotalSpent() async {

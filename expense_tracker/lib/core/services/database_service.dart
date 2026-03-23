@@ -25,6 +25,7 @@ class DatabaseService {
       await Hive.openBox<Transaction>(HiveBoxes.transactions);
       await Hive.openBox<User>(HiveBoxes.users);
       await Hive.openBox<Budget>(HiveBoxes.budgets);
+      await Hive.openBox<Transaction>(HiveBoxes.unsyncedExpenses);
 
       debugPrint('Database initialized successfully at: ${appDocumentDir.path}');
     } catch (e, stackTrace) {

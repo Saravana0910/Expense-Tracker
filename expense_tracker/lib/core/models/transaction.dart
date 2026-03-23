@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 
 part 'transaction.g.dart';
@@ -34,6 +35,30 @@ class Transaction extends HiveObject {
     required this.paymentMethod,
     required this.userId,
   });
+
+  factory Transaction.fromMap(Map<String, dynamic> map) {
+    return Transaction(
+      id: map['id'] as String,
+      amount: (map['amount'] as num).toDouble(),
+      category: map['category'] as String,
+      date: (map['date'] as Timestamp?)?.toDate() ?? DateTime.parse(map['date'].toString()),
+      notes: map['notes'] as String?,
+      paymentMethod: map['paymentMethod'] as String,
+      userId: map['userId'] as String,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'amount': amount,
+      'category': category,
+      'date': date.toUtc(),
+      'notes': notes,
+      'paymentMethod': paymentMethod,
+      'userId': userId,
+    };
+  }
 
   Transaction copyWith({
     String? id,

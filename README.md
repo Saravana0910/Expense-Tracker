@@ -80,22 +80,6 @@ This app follows a clean architecture pattern with:
 - **Flutter Riverpod**: Dependency injection
 - **Material Design**: UI components
 
-## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Setup
-
-1. Ensure you have Flutter installed
-2. Run `flutter doctor` to check your setup
-3. Use `flutter analyze` for code analysis
-4. Run tests with `flutter test`
 
 ## 📄 License
 

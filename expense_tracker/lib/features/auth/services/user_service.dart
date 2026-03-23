@@ -1,32 +1,43 @@
-import '../../../core/constants/app_constants.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/models/user.dart';
 import '../../../core/services/database_service.dart';
+import '../../../core/services/hive_service.dart';
+import '../../../core/services/firestore_service.dart';
 
 class UserService {
   final DatabaseService _db = DatabaseService();
+  final HiveService _hive = HiveService();
+  final FirestoreService _firestore = FirestoreService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  String get currentUserId => _auth.currentUser?.uid ?? '';
 
   Future<User?> getCurrentUser() async {
-    final box = _db.usersBox;
-    final users = box.values.where((u) => u.id == AppConstants.defaultUserId);
-    return users.isNotEmpty ? users.first : null;
+    if (currentUserId.isEmpty) return null;
+    final localUser = _hive.getUser(currentUserId);
+    if (localUser != null) return localUser;
+
+    final remote = await _firestore.getUser(currentUserId);
+    if (remote != null) {
+      await _hive.saveUser(remote);
+    }
+    return remote;
   }
 
   Future<void> createOrUpdateUser({
-    required String name,
-    String? avatarPath,
+    required User user,
   }) async {
-    final user = User(
-      id: AppConstants.defaultUserId,
-      name: name,
-      avatarPath: avatarPath,
-    );
-
-    final box = _db.usersBox;
-    await box.put(user.id, user);
+    await _hive.saveUser(user);
+    await _firestore.setUser(user);
   }
 
   Future<void> updateUser(User user) async {
-    final box = _db.usersBox;
-    await box.put(user.id, user);
+    await _hive.saveUser(user);
+    await _firestore.setUser(user);
+  }
+
+  Future<void> clearUser() async {
+    if (currentUserId.isEmpty) return;
+    await _hive.clearUser(currentUserId);
   }
 }

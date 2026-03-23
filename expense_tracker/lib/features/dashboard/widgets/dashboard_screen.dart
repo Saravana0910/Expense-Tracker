@@ -8,6 +8,7 @@ import 'package:expense_tracker/core/providers/providers.dart';
 import 'package:expense_tracker/core/models/transaction.dart';
 import 'package:expense_tracker/core/models/budget.dart';
 import 'package:expense_tracker/core/models/user.dart';
+import 'package:expense_tracker/features/auth/providers/auth_providers.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -18,7 +19,7 @@ class DashboardScreen extends ConsumerWidget {
     final totalSpentAsync = ref.watch(totalSpentProvider);
     final categorySpendingAsync = ref.watch(categorySpendingProvider);
     final budgetAsync = ref.watch(budgetProvider);
-    final userAsync = ref.watch(userProvider);
+    final userAsync = ref.watch(currentUserProvider);
 
     return Scaffold(
       appBar: AppBar(
