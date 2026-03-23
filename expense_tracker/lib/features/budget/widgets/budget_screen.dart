@@ -200,7 +200,6 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
       ],
     );
   }
-  }
 
   Widget _buildBudgetProgress(BuildContext context, double budget, double spent) {
     final currencyFormat = NumberFormat.currency(symbol: '\$');
