@@ -101,11 +101,14 @@ class UserNotifier extends StateNotifier<AsyncValue<User?>> {
     try {
       final user = User(
         id: AppConstants.defaultUserId,
+        email: 'user@example.com',
+        username: name,
         name: name,
         avatarPath: avatarPath,
+        createdAt: DateTime.now(),
       );
       
-      await _service.createOrUpdateUser(name: name, avatarPath: avatarPath);
+      await _service.createOrUpdateUser(user: user);
       state = AsyncValue.data(user);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);

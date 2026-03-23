@@ -1,15 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../core/models/transaction.dart';
-import '../../../core/services/database_service.dart';
+import '../../../core/models/transaction.dart' as local;
 import '../../../core/services/firestore_service.dart';
 import '../../../core/services/hive_service.dart';
 
 class TransactionService {
-  final DatabaseService _db = DatabaseService();
   final HiveService _hive = HiveService();
   final FirestoreService _firestore = FirestoreService();
   final Connectivity _connectivity = Connectivity();
@@ -21,23 +18,23 @@ class TransactionService {
     return status != ConnectivityResult.none;
   }
 
-  Future<List<Transaction>> getAllTransactions() async {
-    final box = _db.transactionsBox;
-    return box.values.where((t) => t.userId == currentUserId).toList();
+  Future<List<local.Transaction>> getAllTransactions() async {
+    final box = HiveService().transactionsBox;
+    return box.values.where((t) => t.userId == currentUserId).cast<local.Transaction>().toList();
   }
 
-  Future<List<Transaction>> getTransactionsByDateRange(DateTime start, DateTime end) async {
+  Future<List<local.Transaction>> getTransactionsByDateRange(DateTime start, DateTime end) async {
     final all = await getAllTransactions();
     return all.where((t) => t.date.isAfter(start.subtract(const Duration(days: 1))) && t.date.isBefore(end.add(const Duration(days: 1)))).toList();
   }
 
-  Future<List<Transaction>> getTransactionsByCategory(String category) async {
+  Future<List<local.Transaction>> getTransactionsByCategory(String category) async {
     final all = await getAllTransactions();
     return all.where((t) => t.category == category).toList();
   }
 
-  Future<Transaction?> getTransactionById(String id) async {
-    final box = _db.transactionsBox;
+  Future<local.Transaction?> getTransactionById(String id) async {
+    final box = HiveService().transactionsBox;
     return box.get(id);
   }
 
@@ -48,7 +45,7 @@ class TransactionService {
     String? notes,
     required String paymentMethod,
   }) async {
-    final transaction = Transaction(
+    final transaction = local.Transaction(
       id: const Uuid().v4(),
       amount: amount,
       category: category,
@@ -58,7 +55,7 @@ class TransactionService {
       userId: currentUserId,
     );
 
-    final box = _db.transactionsBox;
+    final box = _hive.transactionsBox;
     await box.put(transaction.id, transaction);
 
     if (await isOnline) {
@@ -69,8 +66,8 @@ class TransactionService {
     }
   }
 
-  Future<void> updateTransaction(Transaction transaction) async {
-    final box = _db.transactionsBox;
+  Future<void> updateTransaction(local.Transaction transaction) async {
+    final box = _hive.transactionsBox;
     await box.put(transaction.id, transaction);
 
     if (await isOnline) {
@@ -82,9 +79,9 @@ class TransactionService {
   }
 
   Future<void> deleteTransaction(String id) async {
-    final box = _db.transactionsBox;
+    final box = _hive.transactionsBox;
     await box.delete(id);
-    final expensesRef = FirebaseFirestore.instance.collection('users').doc(currentUserId).collection('expenses');
+    final expensesRef = _firestore.usersCollection.doc(currentUserId).collection('expenses');
     await expensesRef.doc(id).delete().catchError((_) {});
   }
 
@@ -92,7 +89,7 @@ class TransactionService {
     if (!await isOnline) return;
 
     final cloudExpenses = await _firestore.getUserExpenses(currentUserId);
-    final box = _db.transactionsBox;
+    final box = _hive.transactionsBox;
     for (var expense in cloudExpenses) {
       await box.put(expense.id, expense);
     }
@@ -110,14 +107,14 @@ class TransactionService {
 
   Future<double> getTotalSpent() async {
     final transactions = await getAllTransactions();
-    return transactions.fold<double>(0.0, (double sum, Transaction t) => sum + t.amount);
+    return transactions.fold<double>(0.0, (double sum, local.Transaction t) => sum + t.amount);
   }
 
   Future<double> getMonthlySpent(DateTime month) async {
     final start = DateTime(month.year, month.month, 1);
     final end = DateTime(month.year, month.month + 1, 0);
     final transactions = await getTransactionsByDateRange(start, end);
-    return transactions.fold<double>(0.0, (double sum, Transaction t) => sum + t.amount);
+    return transactions.fold<double>(0.0, (double sum, local.Transaction t) => sum + t.amount);
   }
 
   Future<Map<String, double>> getCategorySpending() async {

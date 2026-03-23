@@ -17,7 +17,6 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     initialLocation: '/sign-in',
-    refreshListenable: GoRouterRefreshStream(ref.watch(authStateProvider.stream)),
     routes: [
       GoRoute(
         path: '/sign-in',
@@ -54,7 +53,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
     redirect: (context, state) {
       final signedIn = authState.asData?.value != null;
-      final loggingIn = state.subloc == '/sign-in' || state.subloc == '/sign-up';
+      final loggingIn = state.matchedLocation == '/sign-in' || state.matchedLocation == '/sign-up';
 
       if (!signedIn && !loggingIn) return '/sign-in';
       if (signedIn && loggingIn) return '/';

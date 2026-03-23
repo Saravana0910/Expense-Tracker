@@ -1,18 +1,16 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import '../../../core/models/user.dart';
-import '../../../core/services/database_service.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
+import '../../../core/models/user.dart' as local;
 import '../../../core/services/hive_service.dart';
 import '../../../core/services/firestore_service.dart';
 
 class UserService {
-  final DatabaseService _db = DatabaseService();
   final HiveService _hive = HiveService();
   final FirestoreService _firestore = FirestoreService();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final fb.FirebaseAuth _auth = fb.FirebaseAuth.instance;
 
   String get currentUserId => _auth.currentUser?.uid ?? '';
 
-  Future<User?> getCurrentUser() async {
+  Future<local.User?> getCurrentUser() async {
     if (currentUserId.isEmpty) return null;
     final localUser = _hive.getUser(currentUserId);
     if (localUser != null) return localUser;
@@ -25,13 +23,13 @@ class UserService {
   }
 
   Future<void> createOrUpdateUser({
-    required User user,
+    required local.User user,
   }) async {
     await _hive.saveUser(user);
     await _firestore.setUser(user);
   }
 
-  Future<void> updateUser(User user) async {
+  Future<void> updateUser(local.User user) async {
     await _hive.saveUser(user);
     await _firestore.setUser(user);
   }

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
-import '../../services/auth_service.dart';
+import '../services/auth_service.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../core/services/hive_service.dart';
 import '../../../core/models/user.dart';
@@ -14,12 +14,13 @@ final authStateProvider = StreamProvider<fb.User?>((ref) {
 });
 
 final currentUserProvider = FutureProvider<User?>((ref) async {
-  final authUser = await ref.watch(authStateProvider.future);
+  final authUserAsync = ref.watch(authStateProvider);
+  final authUser = authUserAsync.value;
   if (authUser == null) {
     return null;
   }
-  final user = await HiveService().getUser(authUser.uid);
-  if (user != null) return user;
+  final localUser = HiveService().getUser(authUser.uid);
+  if (localUser != null) return localUser;
   final remote = await FirestoreService().getUser(authUser.uid);
   if (remote != null) {
     await HiveService().saveUser(remote);

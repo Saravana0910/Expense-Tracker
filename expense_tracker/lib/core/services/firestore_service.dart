@@ -1,42 +1,48 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/user.dart';
-import '../models/transaction.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' as fs;
+import '../models/user.dart' as local;
+import '../models/transaction.dart' as local;
 
 class FirestoreService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final fs.FirebaseFirestore _firestore = fs.FirebaseFirestore.instance;
 
-  CollectionReference get usersCollection => _firestore.collection('users');
+  fs.CollectionReference get usersCollection => _firestore.collection('users');
 
-  Future<void> setUser(User user) async {
+  Future<void> setUser(local.User user) async {
     await usersCollection.doc(user.id).set(user.toMap());
   }
 
-  Future<User?> getUser(String uid) async {
+  Future<local.User?> getUser(String uid) async {
     final snapshot = await usersCollection.doc(uid).get();
     if (!snapshot.exists) return null;
-    return User.fromMap(snapshot.data() as Map<String, dynamic>);
+    final data = snapshot.data() as Map<String, dynamic>?;
+    if (data == null) return null;
+    return local.User.fromMap(data);
   }
 
-  Future<void> addExpense(String userId, Transaction expense) async {
+  Future<void> addExpense(String userId, local.Transaction expense) async {
     final expenses = usersCollection.doc(userId).collection('expenses');
     await expenses.doc(expense.id).set(expense.toMap());
   }
 
-  Future<List<Transaction>> getUserExpenses(String userId) async {
+  Future<List<local.Transaction>> getUserExpenses(String userId) async {
     final snapshot = await usersCollection.doc(userId).collection('expenses').get();
     return snapshot.docs.map((d) {
-      final data = d.data() as Map<String, dynamic>;
-      return Transaction.fromMap(data);
+      final data = d.data();
+      return local.Transaction.fromMap(data);
     }).toList();
   }
 
-  Stream<List<Transaction>> streamUserExpenses(String userId) {
+  Stream<List<local.Transaction>> streamUserExpenses(String userId) {
     return usersCollection
         .doc(userId)
         .collection('expenses')
         .orderBy('date', descending: true)
         .snapshots()
-        .map((query) =>
-            query.docs.map((doc) => Transaction.fromMap(doc.data() as Map<String, dynamic>)).toList());
+        .map((query) => query.docs
+            .map((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+              return local.Transaction.fromMap(data);
+            })
+            .toList());
   }
 }
