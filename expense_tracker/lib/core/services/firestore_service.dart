@@ -39,10 +39,7 @@ class FirestoreService {
         .orderBy('date', descending: true)
         .snapshots()
         .map((query) => query.docs
-            .map((doc) {
-              final data = doc.data() as Map<String, dynamic>;
-              return local.Transaction.fromMap(data);
-            })
+            .map((doc) => local.Transaction.fromMap(doc.data()))
             .toList());
   }
 }

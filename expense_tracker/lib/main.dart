@@ -9,20 +9,16 @@ void main() async {
 
   try {
     await Firebase.initializeApp();
-    debugPrint('Firebase initialized successfully');
-  } catch (e, stackTrace) {
-    debugPrint('Firebase initialization failed: $e');
-    debugPrint('Stack trace: $stackTrace');
+  } catch (e) {
+    // Silently handle Firebase init errors - app can run offline
   }
 
   try {
     // Initialize local Hive database
     final dbService = DatabaseService();
     await dbService.init();
-    debugPrint('Database initialized successfully');
-  } catch (e, stackTrace) {
-    debugPrint('Database initialization failed: $e');
-    debugPrint('Stack trace: $stackTrace');
+  } catch (e) {
+    // Silently handle database init errors - app can still function
   }
 
   runApp(

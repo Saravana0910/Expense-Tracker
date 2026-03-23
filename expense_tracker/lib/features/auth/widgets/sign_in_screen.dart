@@ -52,6 +52,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   obscureText: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Enter password';
+                    if (value.length < 8) return 'Minimum 8 characters';
                     return null;
                   },
                 ),
@@ -89,18 +90,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Login successful')));
       context.go('/');
-    } on fb.FirebaseAuthException catch (e) {
-      final message = switch (e.code) {
-        'user-not-found' => 'User not found',
-        'wrong-password' => 'Incorrect password',
-        'invalid-email' => 'Invalid email',
-        _ => 'Authentication error: ${e.message}'
-      };
+    } on fb.FirebaseAuthException {
+      // Use generic error message to prevent account enumeration attacks
+      const message = 'Invalid email or password';
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Login failed')));
     } finally {
       if (mounted) setState(() => _processing = false);
     }
