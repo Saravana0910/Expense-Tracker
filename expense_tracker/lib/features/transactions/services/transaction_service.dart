@@ -1,6 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:uuid/uuid.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/models/transaction.dart' as local;
 import '../../../core/services/firestore_service.dart';
@@ -19,7 +18,7 @@ class TransactionService {
   }
 
   Future<List<local.Transaction>> getAllTransactions() async {
-    final box = HiveService().transactionsBox;
+    final box = _hive.transactionsBox;
     return box.values.where((t) => t.userId == currentUserId).cast<local.Transaction>().toList();
   }
 
@@ -38,23 +37,7 @@ class TransactionService {
     return box.get(id);
   }
 
-  Future<void> addTransaction({
-    required double amount,
-    required String category,
-    required DateTime date,
-    String? notes,
-    required String paymentMethod,
-  }) async {
-    final transaction = local.Transaction(
-      id: const Uuid().v4(),
-      amount: amount,
-      category: category,
-      date: date,
-      notes: notes,
-      paymentMethod: paymentMethod,
-      userId: currentUserId,
-    );
-
+  Future<void> addTransaction(local.Transaction transaction) async {
     final box = _hive.transactionsBox;
     await box.put(transaction.id, transaction);
 

@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import '../constants/app_constants.dart';
 import '../models/transaction.dart';
 import '../models/user.dart';
 import '../models/budget.dart';
@@ -40,16 +39,10 @@ class TransactionsNotifier extends StateNotifier<AsyncValue<List<Transaction>>> 
         date: date,
         notes: notes,
         paymentMethod: paymentMethod,
-        userId: AppConstants.defaultUserId,
+        userId: _service.currentUserId,
       );
-      
-      await _service.addTransaction(
-        amount: amount,
-        category: category,
-        date: date,
-        notes: notes,
-        paymentMethod: paymentMethod,
-      );
+
+      await _service.addTransaction(transaction);
       state = state.whenData((transactions) => [...transactions, transaction]);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
@@ -99,15 +92,16 @@ class UserNotifier extends StateNotifier<AsyncValue<User?>> {
     String? avatarPath,
   }) async {
     try {
+      final existing = state.value;
       final user = User(
-        id: AppConstants.defaultUserId,
-        email: 'user@example.com',
+        id: _service.currentUserId,
+        email: existing?.email ?? '',
         username: name,
         name: name,
         avatarPath: avatarPath,
-        createdAt: DateTime.now(),
+        createdAt: existing?.createdAt ?? DateTime.now(),
       );
-      
+
       await _service.createOrUpdateUser(user: user);
       state = AsyncValue.data(user);
     } catch (e, stack) {
@@ -140,9 +134,9 @@ class BudgetNotifier extends StateNotifier<AsyncValue<Budget?>> {
         id: existing?.id ?? const Uuid().v4(),
         amount: amount,
         month: DateTime(month.year, month.month, 1),
-        userId: AppConstants.defaultUserId,
+        userId: _service.currentUserId,
       );
-      
+
       await _service.setMonthlyBudget(amount, month);
       state = AsyncValue.data(budget);
     } catch (e, stack) {

@@ -60,8 +60,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Please enter an amount';
                   }
-                  if (double.tryParse(value) == null) {
+                  final parsed = double.tryParse(value);
+                  if (parsed == null) {
                     return 'Please enter a valid number';
+                  }
+                  if (parsed <= 0) {
+                    return 'Amount must be greater than zero';
                   }
                   return null;
                 },

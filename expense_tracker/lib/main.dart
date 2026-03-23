@@ -10,7 +10,7 @@ void main() async {
   try {
     await Firebase.initializeApp();
   } catch (e) {
-    // Silently handle Firebase init errors - app can run offline
+    debugPrint('Firebase initialization error: $e');
   }
 
   try {
@@ -18,7 +18,7 @@ void main() async {
     final dbService = DatabaseService();
     await dbService.init();
   } catch (e) {
-    // Silently handle database init errors - app can still function
+    debugPrint('Database initialization error: $e');
   }
 
   runApp(
