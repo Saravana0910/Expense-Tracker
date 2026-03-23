@@ -233,8 +233,19 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildBottomNav(BuildContext context) {
+    final location = GoRouter.of(context).routeInformationProvider.value.location;
+    int currentIndex = 0;
+    
+    if (location.startsWith('/transactions')) {
+      currentIndex = 1;
+    } else if (location.startsWith('/analytics')) {
+      currentIndex = 2;
+    } else if (location.startsWith('/budget')) {
+      currentIndex = 3;
+    }
+    
     return BottomNavigationBar(
-      currentIndex: 0,
+      currentIndex: currentIndex,
       onTap: (index) {
         switch (index) {
           case 0:

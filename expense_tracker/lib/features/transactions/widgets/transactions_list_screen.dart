@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/providers/providers.dart';
@@ -99,7 +100,60 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
           ),
         ],
       ),
+      bottomNavigationBar: _buildBottomNav(context),
     );
+  }
+
+  Widget _buildBottomNav(BuildContext context) {
+    final location = GoRouter.of(context).routeInformationProvider.value.location;
+    int currentIndex = 1;
+    
+    if (location.startsWith('/analytics')) {
+      currentIndex = 2;
+    } else if (location.startsWith('/budget')) {
+      currentIndex = 3;
+    } else if (location == '/') {
+      currentIndex = 0;
+    }
+    
+    return BottomNavigationBar(
+      currentIndex: currentIndex,
+      onTap: (index) {
+        switch (index) {
+          case 0:
+            context.go('/');
+            break;
+          case 1:
+            context.go('/transactions');
+            break;
+          case 2:
+            context.go('/analytics');
+            break;
+          case 3:
+            context.go('/budget');
+            break;
+        }
+      },
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.dashboard),
+          label: 'Dashboard',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.list),
+          label: 'Transactions',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.analytics),
+          label: 'Analytics',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.account_balance_wallet),
+          label: 'Budget',
+        ),
+      ],
+    );
+  }
   }
 
   List<Transaction> _filterTransactions(List<Transaction> transactions) {
