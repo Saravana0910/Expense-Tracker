@@ -20,6 +20,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   String _selectedCategory = AppConstants.categories.first;
   String _selectedPaymentMethod = AppConstants.paymentMethods.first;
   DateTime _selectedDate = DateTime.now();
+  bool _saving = false;
 
   @override
   void dispose() {
@@ -35,8 +36,14 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
         title: const Text('Add Transaction'),
         actions: [
           TextButton(
-            onPressed: _saveTransaction,
-            child: const Text('Save'),
+            onPressed: _saving ? null : _saveTransaction,
+            child: _saving
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Save'),
           ),
         ],
       ),
@@ -164,8 +171,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   }
 
   Future<void> _saveTransaction() async {
+    if (_saving) return;
     if (!_formKey.currentState!.validate()) return;
 
+    setState(() => _saving = true);
     final amount = double.parse(_amountController.text);
 
     try {
@@ -179,7 +188,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transaction added successfully')),
+          const SnackBar(
+            content: Text('Transaction added successfully'),
+            backgroundColor: Colors.green,
+          ),
         );
         context.go('/');
       }
@@ -189,6 +201,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           SnackBar(content: Text('Error: $e')),
         );
       }
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
 }

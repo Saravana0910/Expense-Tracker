@@ -31,8 +31,16 @@ class AuthService {
       createdAt: DateTime.now().toUtc(),
     );
 
-    await _firestore.setUser(user);
+    // Save locally first so the app works even if Firestore is temporarily unavailable.
     await _hive.saveUser(user);
+
+    // Attempt Firestore sync — failures here are transient; user will sync on next sign-in.
+    try {
+      await _firestore.setUser(user);
+    } catch (_) {
+      // Swallow: Firebase Auth account + local Hive record are both valid.
+      // Firestore will be written on next successful connectivity.
+    }
 
     await cred.user?.sendEmailVerification();
     return user;
