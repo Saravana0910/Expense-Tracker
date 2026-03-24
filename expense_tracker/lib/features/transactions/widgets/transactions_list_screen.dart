@@ -308,10 +308,13 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
   }
 
   void _showFilterDialog() {
+    // Capture outer setState so dialog actions can trigger a screen rebuild.
+    final outerSetState = setState;
+
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
+        builder: (context, setDialogState) => AlertDialog(
           title: const Text('Filter Transactions'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -327,7 +330,7 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
                   );
                 }).toList(),
                 onChanged: (value) {
-                  setState(() {
+                  setDialogState(() {
                     _selectedCategory = value!;
                   });
                 },
@@ -346,7 +349,7 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
                           lastDate: DateTime.now(),
                         );
                         if (picked != null) {
-                          setState(() {
+                          setDialogState(() {
                             _startDate = picked;
                           });
                         }
@@ -367,7 +370,7 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
                           lastDate: DateTime.now(),
                         );
                         if (picked != null) {
-                          setState(() {
+                          setDialogState(() {
                             _endDate = picked;
                           });
                         }
@@ -384,7 +387,7 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
           actions: [
             TextButton(
               onPressed: () {
-                setState(() {
+                outerSetState(() {
                   _selectedCategory = 'All';
                   _startDate = null;
                   _endDate = null;
@@ -397,7 +400,7 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                setState(() {
+                outerSetState(() {
                   _updateFilteredTransactions(ref.read(transactionsProvider).value ?? []);
                 });
               },

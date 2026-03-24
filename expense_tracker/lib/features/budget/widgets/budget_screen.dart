@@ -286,8 +286,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
       setState(() {
         _selectedMonth = picked;
       });
-      // Reload budget for new month
-      ref.invalidate(budgetProvider);
+      // Load budget for the newly selected month.
+      ref.read(budgetProvider.notifier).loadForMonth(_selectedMonth);
     }
   }
 

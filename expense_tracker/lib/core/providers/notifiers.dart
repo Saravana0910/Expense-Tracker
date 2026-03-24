@@ -130,6 +130,8 @@ class BudgetNotifier extends StateNotifier<AsyncValue<Budget?>> {
     }
   }
 
+  Future<void> loadForMonth(DateTime month) => loadCurrentBudget(month);
+
   Future<void> setMonthlyBudget(double amount, DateTime month) async {
     try {
       final existing = await _service.getCurrentMonthBudget(month);
