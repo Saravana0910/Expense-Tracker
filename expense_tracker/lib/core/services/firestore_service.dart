@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart' as fs;
 import '../models/user.dart' as local;
 import '../models/transaction.dart' as local;
+import '../models/budget.dart' as local;
 import '../utils/retry_with_backoff.dart';
 
 class FirestoreService {
@@ -42,14 +43,19 @@ class FirestoreService {
     );
   }
 
+  Future<void> deleteExpense(String userId, String expenseId) async {
+    await usersCollection.doc(userId).collection('expenses').doc(expenseId).delete();
+  }
+
   Future<List<local.Transaction>> getUserExpenses(String userId) async {
     return await RetryHelper.retry(
       operation: () async {
-        final snapshot = await usersCollection.doc(userId).collection('expenses').get();
-        return snapshot.docs.map((d) {
-          final data = d.data();
-          return local.Transaction.fromMap(data);
-        }).toList();
+        final snapshot = await usersCollection
+            .doc(userId)
+            .collection('expenses')
+            .orderBy('date', descending: true)
+            .get();
+        return snapshot.docs.map((d) => local.Transaction.fromMap(d.data())).toList();
       },
       maxRetries: 3,
       initialDelayMs: 100,
@@ -65,5 +71,28 @@ class FirestoreService {
         .map((query) => query.docs
             .map((doc) => local.Transaction.fromMap(doc.data()))
             .toList());
+  }
+
+  // ── Budget ─────────────────────────────────────────────────────────────────
+
+  Future<void> setBudget(local.Budget budget) async {
+    await usersCollection
+        .doc(budget.userId)
+        .collection('budgets')
+        .doc(budget.id)
+        .set(budget.toMap());
+  }
+
+  Future<local.Budget?> getBudgetForMonth(String userId, DateTime month) async {
+    final start = fs.Timestamp.fromDate(DateTime(month.year, month.month, 1).toUtc());
+    final end = fs.Timestamp.fromDate(DateTime(month.year, month.month + 1, 1).toUtc());
+    final snapshot = await usersCollection
+        .doc(userId)
+        .collection('budgets')
+        .where('month', isGreaterThanOrEqualTo: start)
+        .where('month', isLessThan: end)
+        .get();
+    if (snapshot.docs.isEmpty) return null;
+    return local.Budget.fromMap(snapshot.docs.first.data());
   }
 }

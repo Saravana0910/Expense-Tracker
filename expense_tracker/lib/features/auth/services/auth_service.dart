@@ -1,12 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import '../../../core/models/user.dart';
 import '../../../core/services/firestore_service.dart';
-import '../../../core/services/hive_service.dart';
 
 class AuthService {
   final fb.FirebaseAuth _auth = fb.FirebaseAuth.instance;
   final FirestoreService _firestore = FirestoreService();
-  final HiveService _hive = HiveService();
 
   Stream<fb.User?> authStateChanges() => _auth.authStateChanges();
 
@@ -31,17 +29,7 @@ class AuthService {
       createdAt: DateTime.now().toUtc(),
     );
 
-    // Save locally first so the app works even if Firestore is temporarily unavailable.
-    await _hive.saveUser(user);
-
-    // Attempt Firestore sync — failures here are transient; user will sync on next sign-in.
-    try {
-      await _firestore.setUser(user);
-    } catch (_) {
-      // Swallow: Firebase Auth account + local Hive record are both valid.
-      // Firestore will be written on next successful connectivity.
-    }
-
+    await _firestore.setUser(user);
     await cred.user?.sendEmailVerification();
     return user;
   }
@@ -51,29 +39,11 @@ class AuthService {
       final cred = await _auth.signInWithEmailAndPassword(email: email, password: password);
       final firebaseUser = cred.user!;
 
-      try {
-        final user = await _firestore.getUser(firebaseUser.uid);
-        if (user == null) {
-          throw Exception('User profile not found in Firestore.');
-        }
-
-        await _hive.saveUser(user);
-        return user;
-      } catch (e) {
-        // If Firestore is unavailable, try to load from local cache
-        final cachedUser = _hive.getUser(firebaseUser.uid);
-        if (cachedUser != null) {
-          return cachedUser;
-        }
-
-        // If no cache available, rethrow with better error message
-        if (_isFirestoreUnavailable(e)) {
-          throw FirestoreUnavailableException(
-            'Unable to verify your account. Please check your internet connection and try again.',
-          );
-        }
-        rethrow;
+      final user = await _firestore.getUser(firebaseUser.uid);
+      if (user == null) {
+        throw Exception('User profile not found in Firestore.');
       }
+      return user;
     } on fb.FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         throw ArgumentError('No account found with this email.');
@@ -87,34 +57,10 @@ class AuthService {
   }
 
   Future<void> signOut() async {
-    final uid = currentUid;
     await _auth.signOut();
-    if (uid != null) {
-      await _hive.clearUser(uid);
-    }
   }
 
   Future<void> resetPassword(String email) async {
     await _auth.sendPasswordResetEmail(email: email);
   }
-
-  /// Check if error is due to Firestore being unavailable
-  bool _isFirestoreUnavailable(dynamic error) {
-    final errorString = error.toString();
-    return errorString.contains('unavailable') ||
-        errorString.contains('deadline-exceeded') ||
-        errorString.contains('UNAVAILABLE') ||
-        errorString.contains('DEADLINE_EXCEEDED') ||
-        errorString.contains('connection') ||
-        errorString.contains('timeout');
-  }
-}
-
-/// Custom exception for Firestore unavailability
-class FirestoreUnavailableException implements Exception {
-  final String message;
-  FirestoreUnavailableException(this.message);
-
-  @override
-  String toString() => message;
 }

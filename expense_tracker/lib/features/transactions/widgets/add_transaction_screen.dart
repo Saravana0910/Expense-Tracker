@@ -20,7 +20,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   String _selectedCategory = AppConstants.categories.first;
   String _selectedPaymentMethod = AppConstants.paymentMethods.first;
   DateTime _selectedDate = DateTime.now();
-  bool _saving = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -35,16 +35,15 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       appBar: AppBar(
         title: const Text('Add Transaction'),
         actions: [
-          TextButton(
-            onPressed: _saving ? null : _saveTransaction,
-            child: _saving
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('Save'),
-          ),
+          _isLoading
+              ? const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+                )
+              : TextButton(
+                  onPressed: _saveTransaction,
+                  child: const Text('Save'),
+                ),
         ],
       ),
       body: Form(
@@ -171,10 +170,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   }
 
   Future<void> _saveTransaction() async {
-    if (_saving) return;
+    if (_isLoading) return;
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _saving = true);
+    setState(() => _isLoading = true);
     final amount = double.parse(_amountController.text);
 
     try {
@@ -198,11 +197,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('Error saving transaction: $e')),
         );
       }
     } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 }

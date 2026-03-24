@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/database_service.dart';
 import '../../features/transactions/services/transaction_service.dart';
 import '../../features/auth/services/user_service.dart';
 import '../../features/budget/services/budget_service.dart';
@@ -7,11 +6,6 @@ import 'notifiers.dart';
 import '../../core/models/transaction.dart';
 import '../../core/models/user.dart';
 import '../../core/models/budget.dart';
-
-// Database
-final databaseServiceProvider = Provider<DatabaseService>((ref) {
-  return DatabaseService();
-});
 
 // Services
 final transactionServiceProvider = Provider<TransactionService>((ref) {

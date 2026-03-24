@@ -46,6 +46,7 @@ class TransactionsNotifier extends StateNotifier<AsyncValue<List<Transaction>>> 
       state = state.whenData((transactions) => [...transactions, transaction]);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
+      rethrow;
     }
   }
 
@@ -56,6 +57,7 @@ class TransactionsNotifier extends StateNotifier<AsyncValue<List<Transaction>>> 
         transactions.map((t) => t.id == transaction.id ? transaction : t).toList());
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
+      rethrow;
     }
   }
 
@@ -66,6 +68,7 @@ class TransactionsNotifier extends StateNotifier<AsyncValue<List<Transaction>>> 
         transactions.where((t) => t.id != id).toList());
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
+      rethrow;
     }
   }
 }

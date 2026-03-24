@@ -1,25 +1,20 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/models/budget.dart';
-import '../../../core/services/database_service.dart';
+import '../../../core/services/firestore_service.dart';
 
 class BudgetService {
-  final DatabaseService _db = DatabaseService();
+  final FirestoreService _firestore = FirestoreService();
 
-  String get currentUserId => FirebaseAuth.instance.currentUser?.uid ?? AppConstants.defaultUserId;
+  String get currentUserId => FirebaseAuth.instance.currentUser?.uid ?? '';
 
   Future<Budget?> getCurrentMonthBudget(DateTime month) async {
-    final box = _db.budgetsBox;
-    final budgets = box.values.where((b) =>
-      b.userId == currentUserId &&
-      b.month.year == month.year &&
-      b.month.month == month.month
-    );
-    return budgets.isNotEmpty ? budgets.first : null;
+    if (currentUserId.isEmpty) return null;
+    return _firestore.getBudgetForMonth(currentUserId, month);
   }
 
   Future<void> setMonthlyBudget(double amount, DateTime month) async {
+    if (currentUserId.isEmpty) return;
     final existing = await getCurrentMonthBudget(month);
     final budget = Budget(
       id: existing?.id ?? const Uuid().v4(),
@@ -27,13 +22,6 @@ class BudgetService {
       month: DateTime(month.year, month.month, 1),
       userId: currentUserId,
     );
-
-    final box = _db.budgetsBox;
-    await box.put(budget.id, budget);
-  }
-
-  Future<List<Budget>> getAllBudgets() async {
-    final box = _db.budgetsBox;
-    return box.values.where((b) => b.userId == currentUserId).toList();
+    await _firestore.setBudget(budget);
   }
 }
