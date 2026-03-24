@@ -7,9 +7,15 @@ import 'app.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    // May throw if already initialized natively via google-services.json,
+    // or if placeholder values are used — either way the app can proceed.
+    debugPrint('Firebase init: $e');
+  }
 
   runApp(
     const ProviderScope(
