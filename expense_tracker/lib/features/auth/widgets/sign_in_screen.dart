@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import '../providers/auth_providers.dart';
-import '../services/auth_service.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
@@ -93,22 +92,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         const SnackBar(content: Text('Login successful')),
       );
       context.go('/');
-    } on FirestoreUnavailableException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message),
-          duration: const Duration(seconds: 5),
-          action: SnackBarAction(
-            label: 'Retry',
-            onPressed: _signIn,
-          ),
-        ),
-      );
     } on ArgumentError catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Login failed')),
+        SnackBar(content: Text(e.message.toString())),
       );
     } on fb.FirebaseAuthException catch (e) {
       if (!mounted) return;

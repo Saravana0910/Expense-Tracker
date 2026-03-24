@@ -1,26 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hive/hive.dart';
 
-part 'user.g.dart';
-
-@HiveType(typeId: 1)
-class User extends HiveObject {
-  @HiveField(0)
+class User {
   final String id;
-
-  @HiveField(1)
   final String name;
-
-  @HiveField(2)
   final String username;
-
-  @HiveField(3)
   final String email;
-
-  @HiveField(4)
   final DateTime createdAt;
-
-  @HiveField(5)
   final String? avatarPath;
 
   User({

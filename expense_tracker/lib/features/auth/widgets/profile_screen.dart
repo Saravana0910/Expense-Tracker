@@ -38,14 +38,10 @@ class ProfileScreen extends ConsumerWidget {
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (user) {
           if (user == null) {
-            return Center(
-              child: TextButton(
-                onPressed: () {
-                  Navigator.of(context).pushReplacementNamed('/sign-in');
-                },
-                child: const Text('Not signed in? Tap to login'),
-              ),
-            );
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.go('/sign-in');
+            });
+            return const Center(child: CircularProgressIndicator());
           }
           return Padding(
             padding: const EdgeInsets.all(16),

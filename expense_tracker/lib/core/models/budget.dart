@@ -1,20 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hive/hive.dart';
 
-part 'budget.g.dart';
-
-@HiveType(typeId: 2)
-class Budget extends HiveObject {
-  @HiveField(0)
+class Budget {
   final String id;
-
-  @HiveField(1)
   final double amount;
-
-  @HiveField(2)
   final DateTime month;
-
-  @HiveField(3)
   final String userId;
 
   Budget({

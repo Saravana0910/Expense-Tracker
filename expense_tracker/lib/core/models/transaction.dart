@@ -1,29 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hive/hive.dart';
 
-part 'transaction.g.dart';
-
-@HiveType(typeId: 0)
-class Transaction extends HiveObject {
-  @HiveField(0)
+class Transaction {
   final String id;
-
-  @HiveField(1)
   final double amount;
-
-  @HiveField(2)
   final String category;
-
-  @HiveField(3)
   final DateTime date;
-
-  @HiveField(4)
   final String? notes;
-
-  @HiveField(5)
   final String paymentMethod;
-
-  @HiveField(6)
   final String userId;
 
   Transaction({
