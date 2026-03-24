@@ -63,39 +63,39 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/loading',
-        builder: (_, __) => const _LoadingScreen(),
+        builder: (context, state) => const _LoadingScreen(),
       ),
       GoRoute(
         path: '/sign-in',
-        builder: (_, __) => const SignInScreen(),
+        builder: (context, state) => const SignInScreen(),
       ),
       GoRoute(
         path: '/sign-up',
-        builder: (_, __) => const SignUpScreen(),
+        builder: (context, state) => const SignUpScreen(),
       ),
       GoRoute(
         path: '/',
-        builder: (_, __) => const DashboardScreen(),
+        builder: (context, state) => const DashboardScreen(),
       ),
       GoRoute(
         path: '/add-transaction',
-        builder: (_, __) => const AddTransactionScreen(),
+        builder: (context, state) => const AddTransactionScreen(),
       ),
       GoRoute(
         path: '/transactions',
-        builder: (_, __) => const TransactionsListScreen(),
+        builder: (context, state) => const TransactionsListScreen(),
       ),
       GoRoute(
         path: '/analytics',
-        builder: (_, __) => const AnalyticsScreen(),
+        builder: (context, state) => const AnalyticsScreen(),
       ),
       GoRoute(
         path: '/budget',
-        builder: (_, __) => const BudgetScreen(),
+        builder: (context, state) => const BudgetScreen(),
       ),
       GoRoute(
         path: '/profile',
-        builder: (_, __) => const ProfileScreen(),
+        builder: (context, state) => const ProfileScreen(),
       ),
     ],
   );
