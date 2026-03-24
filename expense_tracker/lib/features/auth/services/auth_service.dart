@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart' as fb;
-import 'package:cloud_firestore/cloud_firestore.dart' as fs;
 import '../../../core/models/user.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../core/services/hive_service.dart';
@@ -54,11 +53,11 @@ class AuthService {
         return user;
       } catch (e) {
         // If Firestore is unavailable, try to load from local cache
-        final cachedUser = await _hive.getUser(firebaseUser.uid);
+        final cachedUser = _hive.getUser(firebaseUser.uid);
         if (cachedUser != null) {
           return cachedUser;
         }
-        
+
         // If no cache available, rethrow with better error message
         if (_isFirestoreUnavailable(e)) {
           throw FirestoreUnavailableException(
