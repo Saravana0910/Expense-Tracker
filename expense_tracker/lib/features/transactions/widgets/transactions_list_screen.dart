@@ -126,7 +126,7 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
     final uri = GoRouter.of(context).routeInformationProvider.value.uri;
     final location = uri.path;
     int currentIndex = 1;
-    
+
     if (location.startsWith('/analytics')) {
       currentIndex = 2;
     } else if (location.startsWith('/budget')) {
@@ -134,7 +134,7 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
     } else if (location == '/') {
       currentIndex = 0;
     }
-    
+
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: (index) {

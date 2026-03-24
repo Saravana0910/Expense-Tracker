@@ -153,7 +153,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     final uri = GoRouter.of(context).routeInformationProvider.value.uri;
     final location = uri.path;
     int currentIndex = 3;
-    
+
     if (location.startsWith('/transactions')) {
       currentIndex = 1;
     } else if (location.startsWith('/analytics')) {
@@ -161,7 +161,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
     } else if (location == '/') {
       currentIndex = 0;
     }
-    
+
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: (index) {

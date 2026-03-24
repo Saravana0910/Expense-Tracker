@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -8,12 +9,17 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      // On Android, google-services.json configures Firebase natively at build time.
+      // Do NOT pass options here — passing the Dart-side options would override
+      // the native config with wrong placeholder values, breaking Auth.
+      await Firebase.initializeApp();
+    } else {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
   } catch (e) {
-    // May throw if already initialized natively via google-services.json,
-    // or if placeholder values are used — either way the app can proceed.
     debugPrint('Firebase init: $e');
   }
 

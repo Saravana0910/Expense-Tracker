@@ -1,4 +1,6 @@
 name: Build Flutter APK
+permissions:
+  contents: write
 
 on:
   push:
@@ -28,7 +30,9 @@ jobs:
             echo "ERROR: FIREBASE_OPTIONS_DART secret is not set or empty."
             exit 1
           fi
+          # Ensure directories exist before writing
           mkdir -p expense_tracker/android/app
+          mkdir -p expense_tracker/lib
           echo "$GOOGLE_SERVICES_JSON" > expense_tracker/android/app/google-services.json
           echo "$FIREBASE_OPTIONS_DART" > expense_tracker/lib/firebase_options.dart
 
@@ -37,11 +41,15 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle' # <--- Caches Gradle dependencies and wrappers
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          cache: true # <--- Caches the Flutter SDK itself
+          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:" # Optional: more specific caching
+          cache-path: "${{ runner.tool_cache }}/flutter"
 
       - name: Verify Flutter Installation
         run: |
@@ -61,6 +69,7 @@ jobs:
       - name: Build APK
         run: |
           cd expense_tracker
+          # Building with --debug as requested, but caching still helps Gradle
           flutter build apk --debug
 
       - name: Upload APK
