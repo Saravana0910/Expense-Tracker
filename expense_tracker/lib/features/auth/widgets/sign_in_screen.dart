@@ -91,7 +91,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login successful')),
       );
-      context.go('/');
+      // The GoRouter redirect handles navigation to '/' via auth state change.
+      // Don't call context.go('/') here – it races with the router refresh.
     } on ArgumentError catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

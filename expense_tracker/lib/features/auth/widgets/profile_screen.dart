@@ -38,9 +38,10 @@ class ProfileScreen extends ConsumerWidget {
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (user) {
           if (user == null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/sign-in');
-            });
+            // Auth state change will trigger the router to redirect to
+            // /sign-in automatically.  Just show a spinner here; avoid
+            // calling context.go inside build / addPostFrameCallback which
+            // can cause re-render loops.
             return const Center(child: CircularProgressIndicator());
           }
           return Padding(

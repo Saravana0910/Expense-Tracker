@@ -19,6 +19,9 @@ import 'features/auth/providers/auth_providers.dart';
 /// created ONCE and only its redirect logic is re-evaluated on auth changes.
 class _RouterNotifier extends ChangeNotifier {
   final Ref _ref;
+  // Set to true if auth state hasn't resolved within 15 seconds.
+  // Prevents the loading screen from being shown indefinitely.
+  bool _authTimedOut = false;
 
   _RouterNotifier(this._ref) {
     _ref.listen<AsyncValue<fb.User?>>(authStateProvider, (prev, next) {
@@ -33,18 +36,37 @@ class _RouterNotifier extends ChangeNotifier {
       }
       notifyListeners();
     });
+
+    // Safety valve: if Firebase auth hasn't emitted within 15 s (e.g. because
+    // Firebase could not be initialised), stop showing the loading screen and
+    // fall through to sign-in so the user isn't stuck forever.
+    Future.delayed(const Duration(seconds: 15), () {
+      final authAsync = _ref.read(authStateProvider);
+      if (authAsync.isLoading) {
+        _authTimedOut = true;
+        notifyListeners();
+      }
+    });
   }
 
   String? redirect(BuildContext context, GoRouterState state) {
     final authAsync = _ref.read(authStateProvider);
+    final loc = state.matchedLocation;
 
-    // While Firebase determines auth state, show the loading screen.
-    if (authAsync.isLoading) {
-      return state.matchedLocation == '/loading' ? null : '/loading';
+    // While Firebase determines auth state, show the loading screen —
+    // unless we have timed out waiting for it.
+    if (authAsync.isLoading && !_authTimedOut) {
+      return loc == '/loading' ? null : '/loading';
+    }
+
+    // Firebase auth error (bad credentials, network failure) or timeout:
+    // treat as signed-out and send the user to sign-in.
+    if (authAsync.hasError || _authTimedOut) {
+      if (loc == '/sign-in' || loc == '/sign-up') return null;
+      return '/sign-in';
     }
 
     final signedIn = authAsync.asData?.value != null;
-    final loc = state.matchedLocation;
     final onAuthPage = loc == '/sign-in' || loc == '/sign-up';
     final onLoadingPage = loc == '/loading';
 

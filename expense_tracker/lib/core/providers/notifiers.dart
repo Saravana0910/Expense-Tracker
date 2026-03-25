@@ -18,6 +18,13 @@ class TransactionsNotifier extends StateNotifier<AsyncValue<List<Transaction>>> 
 
   void _subscribe() {
     _sub?.cancel();
+    // If there is no logged-in user yet, emit an empty list immediately so
+    // any widget watching transactionsProvider gets data([]) instead of
+    // staying in AsyncValue.loading() forever.
+    if (_service.currentUserId.isEmpty) {
+      state = const AsyncValue.data([]);
+      return;
+    }
     _sub = _service.streamTransactions().listen(
       (transactions) => state = AsyncValue.data(transactions),
       onError: (e, stack) => state = AsyncValue.error(e, stack),

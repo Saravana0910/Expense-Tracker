@@ -1,21 +1,23 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/models/budget.dart';
 import '../../../core/services/firestore_service.dart';
 
 class BudgetService {
   final FirestoreService _firestore = FirestoreService();
 
-  String get currentUserId =>
-      FirebaseAuth.instance.currentUser?.uid ?? AppConstants.defaultUserId;
+  // Never fall back to a hard-coded userId — return empty string if not signed
+  // in so callers can guard against operating on unauthenticated data.
+  String get currentUserId => FirebaseAuth.instance.currentUser?.uid ?? '';
 
   Future<Budget?> getCurrentMonthBudget(DateTime month) async {
+    if (currentUserId.isEmpty) return null;
     return await _firestore.getBudgetForMonth(
         currentUserId, month.year, month.month);
   }
 
   Future<void> setMonthlyBudget(double amount, DateTime month) async {
+    if (currentUserId.isEmpty) return;
     final existing = await getCurrentMonthBudget(month);
     final budget = Budget(
       id: existing?.id ?? const Uuid().v4(),
@@ -27,6 +29,7 @@ class BudgetService {
   }
 
   Future<List<Budget>> getAllBudgets() async {
+    if (currentUserId.isEmpty) return [];
     return await _firestore.getAllBudgets(currentUserId);
   }
 }
