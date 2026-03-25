@@ -10,7 +10,7 @@ class UserService {
 
   Future<local.User?> getCurrentUser() async {
     if (currentUserId.isEmpty) return null;
-    return _firestore.getUser(currentUserId);
+    return await _firestore.getUser(currentUserId);
   }
 
   Future<void> createOrUpdateUser({required local.User user}) async {

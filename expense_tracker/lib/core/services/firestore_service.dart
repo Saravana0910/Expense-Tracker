@@ -1,65 +1,48 @@
 import 'package:cloud_firestore/cloud_firestore.dart' as fs;
 import '../models/user.dart' as local;
 import '../models/transaction.dart' as local;
-import '../models/budget.dart' as local;
-import '../utils/retry_with_backoff.dart';
+import '../models/budget.dart';
 
 class FirestoreService {
   final fs.FirebaseFirestore _firestore = fs.FirebaseFirestore.instance;
 
   fs.CollectionReference get usersCollection => _firestore.collection('users');
 
+  // ── User ─────────────────────────────────────────────────────────────────
+
   Future<void> setUser(local.User user) async {
-    await RetryHelper.retry(
-      operation: () => usersCollection.doc(user.id).set(user.toMap()),
-      maxRetries: 3,
-      initialDelayMs: 100,
-    );
+    await usersCollection.doc(user.id).set(user.toMap());
   }
 
   Future<local.User?> getUser(String uid) async {
-    return await RetryHelper.retry(
-      operation: () async {
-        final snapshot = await usersCollection.doc(uid).get();
-        if (!snapshot.exists) return null;
-        final data = snapshot.data() as Map<String, dynamic>?;
-        if (data == null) return null;
-        return local.User.fromMap(data);
-      },
-      maxRetries: 4,
-      initialDelayMs: 200,
-      maxDelayMs: 8000,
-    );
+    final snapshot = await usersCollection.doc(uid).get();
+    if (!snapshot.exists) return null;
+    final data = snapshot.data() as Map<String, dynamic>?;
+    if (data == null) return null;
+    return local.User.fromMap(data);
   }
 
+  // ── Transactions ──────────────────────────────────────────────────────────
+
   Future<void> addExpense(String userId, local.Transaction expense) async {
-    await RetryHelper.retry(
-      operation: () async {
-        final expenses = usersCollection.doc(userId).collection('expenses');
-        await expenses.doc(expense.id).set(expense.toMap());
-      },
-      maxRetries: 3,
-      initialDelayMs: 100,
-    );
+    final expenses = usersCollection.doc(userId).collection('expenses');
+    await expenses.doc(expense.id).set(expense.toMap());
   }
 
   Future<void> deleteExpense(String userId, String expenseId) async {
-    await usersCollection.doc(userId).collection('expenses').doc(expenseId).delete();
+    await usersCollection
+        .doc(userId)
+        .collection('expenses')
+        .doc(expenseId)
+        .delete();
   }
 
   Future<List<local.Transaction>> getUserExpenses(String userId) async {
-    return await RetryHelper.retry(
-      operation: () async {
-        final snapshot = await usersCollection
-            .doc(userId)
-            .collection('expenses')
-            .orderBy('date', descending: true)
-            .get();
-        return snapshot.docs.map((d) => local.Transaction.fromMap(d.data())).toList();
-      },
-      maxRetries: 3,
-      initialDelayMs: 100,
-    );
+    final snapshot =
+        await usersCollection.doc(userId).collection('expenses').get();
+    return snapshot.docs
+        .map((d) => local.Transaction.fromMap(d.data()))
+        .toList();
   }
 
   Stream<List<local.Transaction>> streamUserExpenses(String userId) {
@@ -73,9 +56,9 @@ class FirestoreService {
             .toList());
   }
 
-  // ── Budget ─────────────────────────────────────────────────────────────────
+  // ── Budgets ───────────────────────────────────────────────────────────────
 
-  Future<void> setBudget(local.Budget budget) async {
+  Future<void> setBudget(Budget budget) async {
     await usersCollection
         .doc(budget.userId)
         .collection('budgets')
@@ -83,16 +66,26 @@ class FirestoreService {
         .set(budget.toMap());
   }
 
-  Future<local.Budget?> getBudgetForMonth(String userId, DateTime month) async {
-    final start = fs.Timestamp.fromDate(DateTime(month.year, month.month, 1).toUtc());
-    final end = fs.Timestamp.fromDate(DateTime(month.year, month.month + 1, 1).toUtc());
+  Future<Budget?> getBudgetForMonth(
+      String userId, int year, int month) async {
     final snapshot = await usersCollection
         .doc(userId)
         .collection('budgets')
-        .where('month', isGreaterThanOrEqualTo: start)
-        .where('month', isLessThan: end)
+        .where('userId', isEqualTo: userId)
         .get();
-    if (snapshot.docs.isEmpty) return null;
-    return local.Budget.fromMap(snapshot.docs.first.data());
+
+    final all = snapshot.docs.map((d) => Budget.fromMap(d.data())).toList();
+    try {
+      return all.firstWhere(
+          (b) => b.month.year == year && b.month.month == month);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<List<Budget>> getAllBudgets(String userId) async {
+    final snapshot =
+        await usersCollection.doc(userId).collection('budgets').get();
+    return snapshot.docs.map((d) => Budget.fromMap(d.data())).toList();
   }
 }

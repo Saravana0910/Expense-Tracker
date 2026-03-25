@@ -18,7 +18,8 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    final cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+    final cred = await _auth.createUserWithEmailAndPassword(
+        email: email, password: password);
     final uid = cred.user!.uid;
 
     final user = User(
@@ -34,14 +35,16 @@ class AuthService {
     return user;
   }
 
-  Future<User> signIn({required String email, required String password}) async {
+  Future<User> signIn(
+      {required String email, required String password}) async {
     try {
-      final cred = await _auth.signInWithEmailAndPassword(email: email, password: password);
+      final cred = await _auth.signInWithEmailAndPassword(
+          email: email, password: password);
       final firebaseUser = cred.user!;
 
       final user = await _firestore.getUser(firebaseUser.uid);
       if (user == null) {
-        throw Exception('User profile not found in Firestore.');
+        throw Exception('User profile not found. Please contact support.');
       }
       return user;
     } on fb.FirebaseAuthException catch (e) {
@@ -50,7 +53,8 @@ class AuthService {
       } else if (e.code == 'wrong-password') {
         throw ArgumentError('Incorrect password.');
       } else if (e.code == 'too-many-requests') {
-        throw ArgumentError('Too many login attempts. Please try again later.');
+        throw ArgumentError(
+            'Too many login attempts. Please try again later.');
       }
       rethrow;
     }
@@ -64,3 +68,4 @@ class AuthService {
     await _auth.sendPasswordResetEmail(email: email);
   }
 }
+

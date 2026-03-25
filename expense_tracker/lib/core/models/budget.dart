@@ -13,6 +13,26 @@ class Budget {
     required this.userId,
   });
 
+  factory Budget.fromMap(Map<String, dynamic> map) {
+    return Budget(
+      id: map['id'] as String,
+      amount: (map['amount'] as num).toDouble(),
+      month: (map['month'] as Timestamp?)?.toDate() ??
+          DateTime.tryParse(map['month']?.toString() ?? '') ??
+          DateTime.now(),
+      userId: map['userId'] as String,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'amount': amount,
+      'month': month.toUtc(),
+      'userId': userId,
+    };
+  }
+
   Budget copyWith({
     String? id,
     double? amount,

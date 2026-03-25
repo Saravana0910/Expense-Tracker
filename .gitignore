@@ -33,6 +33,10 @@ ios/Flutter/Flutter.podspec
 *.sublime-project
 *.sublime-workspace
 
+# Nested clones / duplicate folders
+Expense-Tracker/
+flutter/
+
 # OS
 .DS_Store
 .DS_Store?
